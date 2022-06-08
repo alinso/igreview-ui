@@ -27,6 +27,30 @@
 .App-link {
   color: #61dafb;
 }
+.review-count, .review-date{
+  font-size: 11px;
+  color: gray;
+}
+.review-text{
+  text-align: left;
+  color: #311f44;
+  font-size: 13px;
+  font-family: monospace;
+}
+.search-review-container{
+}
+.landing-title{
+  color: #566834;
+  font-weight: bold;
+  font-family: monospace;
+}
+.voteIcon{
+  color: #9f8888;
+}
+.landing-exp{
+  color: #311f44;
+  font-size: 12px
+}
 
 @keyframes App-logo-spin {
   from {
