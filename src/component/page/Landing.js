@@ -3,7 +3,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import Globals from "../../util/Globals";
 import moment from "moment";
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
-import {faArrowDown, faArrowUp} from '@fortawesome/free-solid-svg-icons'
+import {faAnglesLeft, faAnglesRight, faArrowDown, faArrowUp} from '@fortawesome/free-solid-svg-icons'
 
 const axios = require('axios');
 
@@ -12,14 +12,63 @@ class Landing extends Component {
         super();
         this.state = {
             profile: "",
+            newReview: "",
             reviews: [],
+            newReviewAreaVisible: false,
+            reviewCountAreaVisible: false,
             errors: [],
+            pageNum: 0,
             reviewCount: 0,
         }
         this.vote = this.vote.bind(this);
-        this.handleKeyPress = this.handleKeyPress.bind(this);
+        this.loadReviews = this.loadReviews.bind(this);
         this.onChange = this.onChange.bind(this);
+        this.saveReview = this.saveReview.bind(this);
+        this.changePage=this.changePage.bind(this);
+
     }
+
+    changePage(pageNum) {
+        let self = this;
+        if(pageNum<0)
+            pageNum=0;
+
+        if(pageNum>this.state.reviewCount/5)
+            pageNum=this.state.reviewCount/5;
+
+
+            axios.get(Globals.serviceUrl + 'p/' + self.state.profile+"/"+pageNum)
+                .then(function (response) {
+                    self.setState({"errors": {}});
+                    self.setState({reviews: response.data.reviewDtoList});
+                    self.setState({reviewCount: response.data.reviewCount});
+                    self.setState({newReviewAreaVisible: true});
+                    self.setState({reviewCountAreaVisible: true});
+                    self.setState({pageNum:pageNum});
+                })
+                .catch(function (error) {
+                    self.setState({"errors": error.response.data});
+                });
+        }
+
+
+
+    saveReview() {
+        let self = this;
+        let reviewData = {
+            review: self.state.newReview,
+            igProfileName: self.state.profile
+        }
+        axios.post(Globals.serviceUrl + 'review/', reviewData)
+            .then(function (response) {
+                const newReviews = [...self.state.reviews];
+                newReviews.push(response.data);
+                self.setState({reviews: newReviews});
+                self.setState({reviewCount: self.state.reviewCount + 1});
+                self.setState({newReviewAreaVisible: false});
+            })
+    }
+
 
     vote(vote, reviewId) {
 
@@ -44,7 +93,7 @@ class Landing extends Component {
     }
 
 
-    handleKeyPress = (event) => {
+    loadReviews = (event) => {
         let self = this;
         if (event.key === 'Enter') {
             console.log("yes");
@@ -54,6 +103,8 @@ class Landing extends Component {
                     self.setState({"errors": {}});
                     self.setState({reviews: response.data.reviewDtoList});
                     self.setState({reviewCount: response.data.reviewCount});
+                    self.setState({newReviewAreaVisible: true});
+                    self.setState({reviewCountAreaVisible: true});
                 })
                 .catch(function (error) {
                     self.setState({"errors": error.response.data});
@@ -81,18 +132,27 @@ class Landing extends Component {
                         name="profile"
                         onChange={this.onChange}
                         value={this.state.profile}
-                        onKeyDown={this.handleKeyPress}
+                        onKeyDown={this.loadReviews}
                         aria-label="Search"/>
 
 
                     <div className={"reviews-container"}>
+                        {this.state.reviewCountAreaVisible && this.state.reviews.length > 0 && (
+                            <div className={"review-count"}>
+                                <br/>
+                                <span> toplam {this.state.reviewCount} yorum</span> &nbsp;&nbsp;&nbsp;
 
-                        <span className={"review-count"}> {this.state.reviewCount} yorum listeleniyor</span>
+                                <span onClick={()=>this.changePage(0)}> ilk sayfa</span> &nbsp;
+                                <span onClick={()=>this.changePage(this.state.pageNum-1)}> <FontAwesomeIcon icon={faAnglesLeft}/> onceki</span> &nbsp;
+                                <span onClick={()=>this.changePage(this.state.pageNum+1)}> sonraki <FontAwesomeIcon icon={faAnglesRight}/></span> &nbsp;
+                                <span onClick={()=>this.changePage(this.state.reviewCount/5)}> son sayfa</span>
+                            </div>
+                        )}
+                        <br/>
                         {this.state.reviews.map(function (review) {
-
                             let date = moment(review.createdAt).format("YY-MM-DD HH:MM");
 
-                            return (<div className={"col-10 offset-1 review-text"}>
+                            return (<div className={"col-12  review-text"}>
                                     {review.review}
                                     <br/>
                                     <span className={"review-date"}>{date}</span>
@@ -108,7 +168,22 @@ class Landing extends Component {
                             )
                         })}
                     </div>
-
+                    <br/>
+                    {this.state.reviews.length == 0 && this.state.newReviewAreaVisible && (
+                        <span className={"landing-exp"}>bu profile henüz kimse yorum yapmamış:(</span>
+                    )}
+                    {this.state.newReviewAreaVisible && (
+                        <div><textarea
+                            className="form-control"
+                            placeholder={"anonim bir yorum bırak..."}
+                            name="newReview"
+                            onChange={this.onChange}
+                            value={this.state.newReview}
+                            aria-label="Search"/>
+                            <br/>
+                            <button onClick={this.saveReview} className={"btn btn-primary"}>yorumu kaydet</button>
+                        </div>
+                    )}
                 </div>
 
 
