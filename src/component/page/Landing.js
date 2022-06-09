@@ -3,7 +3,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import Globals from "../../util/Globals";
 import moment from "moment";
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
-import {faAnglesLeft, faAnglesRight, faArrowDown, faArrowUp} from '@fortawesome/free-solid-svg-icons'
+import {faAnglesLeft, faAnglesRight, faArrowDown, faArrowUp,faTrashCan} from '@fortawesome/free-solid-svg-icons'
 
 const axios = require('axios');
 
@@ -20,6 +20,7 @@ class Landing extends Component {
             pageNum: 0,
             reviewCount: 0,
         }
+        this.deleteReview=this.deleteReview.bind(this);
         this.vote = this.vote.bind(this);
         this.loadReviews = this.loadReviews.bind(this);
         this.onChange = this.onChange.bind(this);
@@ -71,7 +72,6 @@ class Landing extends Component {
 
 
     vote(vote, reviewId) {
-
         const voteData = {
             reviewId: reviewId,
             voteValue: vote
@@ -112,6 +112,19 @@ class Landing extends Component {
         }
     }
 
+
+    deleteReview(id){
+
+    if(!window.confirm("bu yorumu silmek istiyor musun"))
+        return;
+        axios.delete(Globals.serviceUrl + 'review/'+id)
+            .then(function(response){
+            alert("yorum silindi");
+            }).catch(function (res){
+           alert("yorumu sadece yazan kişi silebilir. aynı zamanda yeterince olumsuz oy alan yorumlar da silinir")
+        });
+    }
+
     onChange(e) {
         this.setState({[e.target.name]: e.target.value});
     }
@@ -121,6 +134,7 @@ class Landing extends Component {
         return (
             <div className="row app-container">
                 <div className={" col-md-6 offset-md-3 col-10 offset-1"}>
+                    <img src={"instalogo.png"}/>
                     <br/><br/>
                     <h6 className={"landing-title"}>instagram profil yorumları</h6>
                     <span className={"landing-exp"}>bir instagram profiline yorum yapabilir veya yorumları okuyabilirsin.
@@ -163,12 +177,24 @@ class Landing extends Component {
                                     <FontAwesomeIcon icon={faArrowDown} className={"voteIcon"}
                                                      onClick={() => self.vote("DOWN", review.id)}/> (<span
                                     id={"voteSum" + review.id}>{review.voteSum}</span>)
+                                    <span onClick={()=>self.deleteReview(review.id)}><FontAwesomeIcon icon={faTrashCan}/></span>
                                     <br/><br/>
                                 </div>
                             )
                         })}
                     </div>
                     <br/>
+                    {this.state.reviewCountAreaVisible && this.state.reviews.length > 0 && (
+                        <div className={"review-count"}>
+                            <br/>
+                            <span> toplam {this.state.reviewCount} yorum</span> &nbsp;&nbsp;&nbsp;
+
+                            <span onClick={()=>this.changePage(0)}> ilk sayfa</span> &nbsp;
+                            <span onClick={()=>this.changePage(this.state.pageNum-1)}> <FontAwesomeIcon icon={faAnglesLeft}/> onceki</span> &nbsp;
+                            <span onClick={()=>this.changePage(this.state.pageNum+1)}> sonraki <FontAwesomeIcon icon={faAnglesRight}/></span> &nbsp;
+                            <span onClick={()=>this.changePage(this.state.reviewCount/5)}> son sayfa</span>
+                        </div>
+                    )}
                     {this.state.reviews.length == 0 && this.state.newReviewAreaVisible && (
                         <span className={"landing-exp"}>bu profile henüz kimse yorum yapmamış:(</span>
                     )}
@@ -181,7 +207,7 @@ class Landing extends Component {
                             value={this.state.newReview}
                             aria-label="Search"/>
                             <br/>
-                            <button onClick={this.saveReview} className={"btn btn-primary"}>yorumu kaydet</button>
+                            <button onClick={this.saveReview} className={"btn btn-success"}>yorumu kaydet</button>
                         </div>
                     )}
                 </div>
