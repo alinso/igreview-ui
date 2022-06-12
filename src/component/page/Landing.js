@@ -3,7 +3,14 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import Globals from "../../util/Globals";
 import moment from "moment";
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
-import {faAnglesLeft, faAnglesRight, faArrowDown, faArrowUp, faTrashCan} from '@fortawesome/free-solid-svg-icons'
+import {
+    faAnglesLeft,
+    faAnglesRight,
+    faArrowDown,
+    faArrowUp,
+    faLink,
+    faTrashCan
+} from '@fortawesome/free-solid-svg-icons'
 
 const axios = require('axios');
 
@@ -70,7 +77,9 @@ class Landing extends Component {
                 self.setState({reviews: newReviews});
                 self.setState({reviewCount: self.state.reviewCount + 1});
                 self.setState({newReviewAreaVisible: false});
-            })
+            }).catch(function (err){
+            alert(err.response.data.review);
+        });
     }
 
 
@@ -122,14 +131,15 @@ class Landing extends Component {
     }
 
     handleReviewClick(pName) {
+        window.scrollTo({top: 0, behavior: 'smooth'});
         this.setState({profile: pName}, this.loadReviews);
     }
 
     handleKeyDown = (event) => {
         this.setState({newReviewAreaVisible: false});
         if (event.key === 'Enter') {
-            let cleanProfile= this.state.profile.replace("@","");
-            this.setState({profile:cleanProfile},this.loadReviews)
+            let cleanProfile = this.state.profile.replace("@", "");
+            this.setState({profile: cleanProfile}, this.loadReviews)
         }
     }
 
@@ -156,47 +166,42 @@ class Landing extends Component {
                 <div className={" col-md-6 offset-md-3 col-10 offset-1"}>
                     <img src={"instalogo.png"}/>
                     <br/><br/>
-                    <h6 className={"landing-title"}>instagram profil yorumları</h6>
-                    <span className={"landing-exp"}>bir instagram profiline yorum yapabilir veya yorumları okuyabilirsin.
-                    merak ettiğin kişinin IG profilini yaz, enterle, insanlar ne diyor öğren</span><br/><br/>
+                    <span className={"landing-exp"}>
+                    Merak ettiğin kişinin instagramını yaz</span><br/>
+                    <span className={"landing-exp"}> Onun  &nbsp;hakkında &nbsp;neler  &nbsp;diyorlar öğren</span><br/><br/>
                     <div className={"row"}>
                         <div className={"col-9"}>
                             <input
                                 className="form-control"
                                 type="search"
-                                placeholder="Orn : kyliejenner"
+                                placeholder="Örn : shakira"
                                 name="profile"
                                 onChange={this.onChange}
                                 value={this.state.profile}
                                 onKeyDown={this.handleKeyDown}
                                 aria-label="Search"/>
                         </div>
-                        <div className={"col-2"}>
+                        <div className={"col-2 search-button"}>
                             <button onClick={this.loadReviews} className={"btn btn-success"}>ara</button>
                         </div>
                     </div>
                     <div className={"reviews-container"}>
                         {this.state.reviewCountAreaVisible && this.state.reviews.length > 0 && (
-                            <div className={"review-count"}>
+                            <div className={"review-meta-head"}>
                                 <br/>
-                                <span> toplam {this.state.reviewCount} yorum</span> &nbsp;&nbsp;&nbsp;
-
-                                <span onClick={() => this.changePage(0)}> ilk sayfa</span> &nbsp;
-                                <span onClick={() => this.changePage(this.state.pageNum - 1)}> <FontAwesomeIcon
-                                    icon={faAnglesLeft}/> onceki</span> &nbsp;
-                                <span onClick={() => this.changePage(this.state.pageNum + 1)}> sonraki <FontAwesomeIcon
-                                    icon={faAnglesRight}/></span> &nbsp;
-                                <span onClick={() => this.changePage(this.state.reviewCount / 5)}> son sayfa</span>
+                                <span> {this.state.reviewCount} yorum |</span> &nbsp;
+                                <a href={"https://instagram.com/" + this.state.profile}
+                                   className={"float-left link"}><FontAwesomeIcon icon={faLink}/> profile git </a>
                             </div>
                         )}
                         <br/>
                         {this.state.reviews.map(function (review) {
-                            let date = moment(review.createdAt).format("YY-MM-DD HH:MM");
+                            let date = moment(review.createdAt).format("YY-MM-DD HH:mm");
 
                             return (<div className={"col-12  review-text"}>
                                     {review.review}
                                     <br/>
-                                    <span className={"review-date"}>{date}</span>
+                                    <span className={"review-date"}>{date}  #{review.id}</span>
                                     &nbsp;&nbsp;&nbsp;
                                     <FontAwesomeIcon icon={faArrowUp} className={"voteIcon"}
                                                      onClick={() => self.vote("UP", review.id)}/>
@@ -213,25 +218,23 @@ class Landing extends Component {
                     </div>
                     <br/>
                     {this.state.reviewCountAreaVisible && this.state.reviews.length > 0 && (
-                        <div className={"review-count"}>
+                        <div className={"review-meta"}>
                             <br/>
-                            <span> toplam {this.state.reviewCount} yorum</span> &nbsp;&nbsp;&nbsp;
-
-                            <span onClick={() => this.changePage(0)}> ilk sayfa</span> &nbsp;
+                            <span onClick={() => this.changePage(0)}> ilk sayfa</span> &nbsp;&nbsp;
                             <span onClick={() => this.changePage(this.state.pageNum - 1)}> <FontAwesomeIcon
-                                icon={faAnglesLeft}/> onceki</span> &nbsp;
+                                icon={faAnglesLeft}/> onceki</span> &nbsp;&nbsp;
                             <span onClick={() => this.changePage(this.state.pageNum + 1)}> sonraki <FontAwesomeIcon
-                                icon={faAnglesRight}/></span> &nbsp;
+                                icon={faAnglesRight}/></span> &nbsp;&nbsp;
                             <span onClick={() => this.changePage(this.state.reviewCount / 5)}> son sayfa</span>
                         </div>
                     )}
                     {this.state.reviews.length == 0 && this.state.newReviewAreaVisible && (
-                        <span className={"landing-exp"}><strong>@{this.state.profile}</strong> için henüz kimse yorum yapmamış:(</span>
+                        <span className={"landing-exp"}><strong>@{this.state.profile}</strong> için henüz yorum yazılmamış 😔</span>
                     )}
                     {this.state.newReviewAreaVisible && (
                         <div><textarea
                             className="form-control"
-                            placeholder={"anonim bir yorum bırak..."}
+                            placeholder={"anonim bir yorum bırak, bunu senin yazdığını kimse bilmeyecek..."}
                             name="newReview"
                             onChange={this.onChange}
                             value={this.state.newReview}
@@ -240,22 +243,27 @@ class Landing extends Component {
                             <button onClick={this.saveReview} className={"btn btn-success"}>yorumu kaydet</button>
                         </div>
                     )}
-
                     <hr/>
-                    <h6 className={"landing-title"}>son yazılanlar</h6>
+                    <span className={"recent-reviews-title"}>son yazılanlar</span><br/><hr/>
                     {this.state.lastReviews.map(function (review) {
-                        let date = moment(review.createdAt).format("YY-MM-DD HH:MM");
+                        let date = moment(review.createdAt).format("YY-MM-DD HH:mm");
 
                         return (<div className={"col-12  review-text"}>
-                                <strong onClick={() => self.handleReviewClick(review.igProfileName)}>@{review.igProfileName} için</strong> : {review.review}
+                                <strong
+                                    onClick={() => self.handleReviewClick(review.igProfileName)}>@{review.igProfileName} için</strong> : {review.review}
                                 <br/>
-                                <span className={"review-date"}>{date}</span>
+                                <span className={"review-date"}>{date} #{review.id}</span>
                                 <br/><br/>
                             </div>
                         )
                     })}
-                </div>
+                    <span className={"review-date"}>son {this.state.lastReviews.length} yorum listelendi...</span>
+                    <hr/>
 
+                    <br/><span className={"landing-exp"}> iletişim için bana instagramdan yaz: <a
+                    href={"https://instagram.com/xalinso"}>xalinso</a></span>
+                    <br/><br/><br/><br/>
+                </div>
             </div>
         )
     };

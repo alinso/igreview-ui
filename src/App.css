@@ -27,7 +27,10 @@
 .App-link {
   color: #61dafb;
 }
-.review-count, .review-date{
+.review-meta-head{
+  text-align: left;
+}
+.review-meta, .review-date,.review-meta-head{
   font-size: 11px;
   color: gray;
 }
@@ -36,19 +39,30 @@
   color: #311f44;
   font-size: 13px;
 }
-.search-review-container{
+.link{
+  text-decoration: none;
 }
 .landing-title{
   color: #566834;
   font-weight: bold;
   font-family: monospace;
 }
+.recent-reviews-title{
+  color: #566834;
+  font-size: 13px;
+  font-weight: bold;
+  font-family: monospace;
+}
 .voteIcon{
   color: #9f8888;
 }
+.search-button{
+  margin-left: -15px;
+}
 .landing-exp{
   color: #311f44;
-  font-size: 12px
+  font-size: 14px;
+  font-family: 'Yanone Kaffeesatz', sans-serif;
 }
 
 @keyframes App-logo-spin {
